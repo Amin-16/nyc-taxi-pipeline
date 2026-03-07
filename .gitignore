@@ -1,0 +1,7 @@
+cp-creds.json
+.env
+logs/
+__pycache__/
+.venv/
+*.pyc
+EOF

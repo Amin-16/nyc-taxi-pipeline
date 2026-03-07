@@ -1,0 +1,14 @@
+[project]
+name = "nyc-taxi-pipeline"
+version = "0.1.0"
+description = "Add your description here"
+readme = "README.md"
+requires-python = ">=3.11,<3.12"
+dependencies = [
+    "apache-airflow==2.9.3",
+    "google-cloud-storage>=3.9.0",
+    "pandas>=3.0.1",
+    "pendulum>=3.2.0",
+    "pyarrow>=23.0.1",
+    "requests>=2.32.5",
+]
