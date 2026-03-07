@@ -1,0 +1,11 @@
+version: 2
+
+sources:
+  - name: nyc_taxi_raw
+    database: nyc-taxi-pipeline-489001
+    schema: nyc_taxi_raw
+    tables:
+      - name: yellow_tripdata_2019
+        description: "Yellow taxi trips 2019 - partitioned by pickup date"
+      - name: green_tripdata_2019
+        description: "Green taxi trips 2019 - partitioned by pickup date"
