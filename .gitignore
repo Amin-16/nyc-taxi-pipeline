@@ -1,4 +1,4 @@
-cp-creds.json
+gcp-creds.json
 .env
 logs/
 __pycache__/
