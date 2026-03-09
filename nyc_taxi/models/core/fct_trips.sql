@@ -1,0 +1,97 @@
+{{
+  config(
+    materialized = 'incremental',
+    partition_by = {
+    'field': 'pickup_datetime',
+    'data_type': 'timestamp',
+    'granularity': 'day'
+},
+    cluster_by = ['pickup_location_id', 'dropoff_location_id'],
+    on_schema_change = 'fail'
+    )
+}}
+
+WITH yellow_trips AS (
+    SELECT * FROM {{ref('stg_yellow_tripdata')}}
+),
+
+ green_trips AS (
+    SELECT
+        vendor_id, rate_code_id, pickup_location_id,
+        dropoff_location_id, pickup_datetime, dropoff_datetime,
+        store_and_fwd_flag, passenger_count, trip_distance,
+        fare_amount, extra, mta_tax, tip_amount, tolls_amount,
+        improvement_surcharge, total_amount, congestion_surcharge,
+        payment_type, taxi_type
+    FROM {{ ref('stg_green_tripdata') }}
+),
+
+all_trips AS (
+    SELECT * FROM yellow_trips
+    UNION ALL
+    SELECT * FROM green_trips
+),
+
+trips_with_zones AS (
+    SELECT
+        -- surrogate key — unique ID for each trip
+        {{ dbt_utils.generate_surrogate_key([
+            'pickup_datetime',
+            'pickup_location_id',
+            'dropoff_location_id',
+            'taxi_type'
+        ]) }}                                       AS trip_id,
+        t.taxi_type,
+        t.vendor_id,
+        t.rate_code_id,
+        t.pickup_datetime,
+        t.dropoff_datetime,
+        DATE(t.pickup_datetime)                      AS pickup_date,
+        EXTRACT(HOUR FROM t.pickup_datetime)        AS pickup_hour,
+        EXTRACT(DAYOFWEEK FROM t.pickup_datetime)   AS pickup_day_of_week,
+        EXTRACT(MONTH FROM t.pickup_datetime)       AS pickup_month,
+
+        t.pickup_location_id,
+        pz.borough AS pickup_borough,
+        pz.zone AS pickup_zone,
+        pz.service_zone AS pickup_service_zone,
+        t.dropoff_location_id,
+        dz.borough AS dropoff_borough,
+        dz.zone AS dropoff_zone,
+
+        t.passenger_count,
+        t.trip_distance,
+        t.store_and_fwd_flag,
+
+        t.fare_amount,
+        t.extra,
+        t.mta_tax,
+        t.tip_amount,
+        t.tolls_amount,
+        t.improvement_surcharge,
+        t.congestion_surcharge,
+        t.total_amount,
+        t.payment_type,
+        
+TIMESTAMP_DIFF(dropoff_datetime, pickup_datetime, MINUTE) AS trip_duration_min,
+CASE
+    WHEN payment_type = 1 THEN 'Credit Card'
+    WHEN payment_type = 2 THEN 'Cash'
+    WHEN payment_type = 3 THEN 'No Charge'
+    WHEN payment_type = 4 THEN 'Dispute'
+    ELSE 'Unknown'
+END AS payment_type_description
+    FROM all_trips t
+    LEFT JOIN {{ ref('dim_zones') }} AS pz
+        ON t.pickup_location_id = pz.location_id
+    LEFT JOIN {{ ref('dim_zones') }} AS dz
+        ON t.dropoff_location_id = dz.location_id
+
+    
+)
+
+SELECT * FROM trips_with_zones
+
+{% if is_incremental() %}
+WHERE pickup_datetime > (SELECT MAX(pickup_datetime) FROM {{ this }})
+{% endif %}
