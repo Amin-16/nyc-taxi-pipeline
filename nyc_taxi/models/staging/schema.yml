@@ -1,0 +1,47 @@
+version: 2
+
+models:
+  - name: stg_yellow_tripdata
+    description: "Cleaned and type-casted yellow taxi trips 2019"
+    columns:
+      - name: vendor_id
+        description: "Taxi vendor ID"
+        tests:
+          - not_null
+      - name: pickup_datetime
+        description: "Trip pickup timestamp"
+        tests:
+          - not_null
+      - name: total_amount
+        description: "Total trip amount charged"
+        tests:
+          - not_null
+      - name: taxi_type
+        description: "Type of taxi"
+        tests:
+          - accepted_values:
+              values: ['yellow']
+      - name: pickup_location_id
+        description: "Pickup zone location ID"
+        tests:
+          - not_null
+
+  - name: stg_green_tripdata
+    description: "Cleaned and type-casted green taxi trips 2019"
+    columns:
+      - name: vendor_id
+        tests:
+          - not_null
+      - name: pickup_datetime
+        tests:
+          - not_null
+      - name: total_amount
+        tests:
+          - not_null
+      - name: taxi_type
+        tests:
+          - accepted_values:
+              values: ['green']
+      - name: pickup_location_id
+        tests:
+          - not_null

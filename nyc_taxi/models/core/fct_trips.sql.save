@@ -35,17 +35,20 @@ all_trips AS (
 trips_with_zones AS (
     SELECT
         -- surrogate key — unique ID for each trip
-{{ dbt_utils.generate_surrogate_key([
+        {{ dbt_utils.generate_surrogate_key([
+            'pickup_datetime',
+            'pickup_location_id',
+            'dropoff_location_id',
+            'taxi_type'
+        ]) }}                                       AS trip_id,
+  {{ dbt_utils.generate_surrogate_key([
     'pickup_datetime',
     'pickup_location_id',
     'dropoff_location_id',
     'taxi_type',
     'vendor_id',
-    'payment_type',
-    'fare_amount',
-    'total_amount'
-]) }}                                AS trip_id,
-        t.taxi_type,
+    'payment_type'
+]) }}      t.taxi_type,
         t.vendor_id,
         t.rate_code_id,
         t.pickup_datetime,

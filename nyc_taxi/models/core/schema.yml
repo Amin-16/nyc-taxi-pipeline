@@ -1,0 +1,42 @@
+version: 2
+
+models:
+  - name: fct_trips
+    description: "All NYC taxi trips 2019 - yellow and green combined"
+    columns:
+      - name: trip_id
+        description: "Surrogate key - unique identifier per trip"
+        tests:
+          - not_null
+          - unique
+      - name: pickup_datetime
+        description: "Trip pickup timestamp"
+        tests:
+          - not_null
+      - name: total_amount
+        description: "Total trip amount"
+        tests:
+          - not_null
+      - name: taxi_type
+        description: "yellow or green"
+        tests:
+          - not_null
+          - accepted_values:
+              values: ['yellow', 'green']
+      - name: trip_duration_min
+        description: "Trip duration in minutes"
+        tests:
+          - not_null
+
+  - name: dim_zones
+    description: "NYC taxi zone reference table - 265 zones"
+    columns:
+      - name: location_id
+        description: "Unique zone identifier"
+        tests:
+          - not_null
+          - unique
+      - name: borough
+        description: "NYC borough name"
+        tests:
+          - not_null
